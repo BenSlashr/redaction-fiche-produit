@@ -161,13 +161,15 @@ interface GenerateWithTemplateRequest extends ProductDescriptionRequest {
 export const api = {
   // Génération de description de produit
   async generateDescription(data: ProductDescriptionRequest): Promise<ProductResponse> {
-    const response = await axios.post(`${API_URL}/generate-product-description`, data);
+    console.log('Appel à generateDescription via proxy');
+    const response = await axios.post('/api/proxy-generate', data);
     return response.data;
   },
 
   // Génération de description avec RAG
   async generateWithRAG(data: ProductDescriptionRequest): Promise<ProductResponse> {
-    const response = await axios.post(`${API_URL}/generate-with-rag`, data);
+    console.log('Appel à generateWithRAG via proxy');
+    const response = await axios.post('/api/proxy-rag', data);
     return response.data;
   },
 
@@ -226,8 +228,9 @@ export const api = {
   // Récupération des templates disponibles
   async getTemplates(): Promise<TemplateResponse> {
     try {
-      const response = await axios.get(`${API_URL}/templates/`);
-      console.log('Réponse brute de l\'API templates:', response);
+      console.log('Appel à getTemplates via proxy');
+      const response = await axios.get('/api/proxy-template');
+      console.log('Réponse brute de l\'API templates via proxy:', response);
       return response.data;
     } catch (error) {
       console.error('Erreur lors de la récupération des templates:', error);
@@ -237,7 +240,8 @@ export const api = {
 
   // Génération avec template
   async generateWithTemplate(data: GenerateWithTemplateRequest): Promise<ProductResponse> {
-    const response = await axios.post(`${API_URL}/templates/generate`, data);
+    console.log('Appel à generateWithTemplate via proxy');
+    const response = await axios.post('/api/proxy-template', data);
     return response.data;
   }
 };

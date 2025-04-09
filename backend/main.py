@@ -51,8 +51,20 @@ logger.info(f"THOT_API_KEY configurée: {'Oui' if THOT_API_KEY else 'Non'}")
 app = FastAPI(
     title="API de Génération de Fiches Produit",
     description="API pour générer des fiches produit enrichies par IA",
-    version="0.1.0",
+    version="0.1.0"
 )
+
+# Configuration CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "http://localhost:8045", "http://51.75.124.6:8045"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Montage des routes
+app.include_router(template_router, prefix="/templates")
 
 # Configuration CORS pour permettre les requêtes depuis le frontend
 app.add_middleware(
@@ -1212,5 +1224,5 @@ async def generate_with_rag(
 # Démarrage de l'application
 if __name__ == "__main__":
     import uvicorn
-    logger.info("Démarrage du serveur FastAPI")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    logger.info("Démarrage du serveur FastAPI sur le port 8050")
+    uvicorn.run("main:app", host="0.0.0.0", port=8050, reload=True)

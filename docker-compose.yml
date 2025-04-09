@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  rfp-backend:
+    build:
+      context: ./backend
+    container_name: rfp-backend
+    ports:
+      - "8050:8050"
+    volumes:
+      - ./backend:/app
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - THOT_API_KEY=${THOT_API_KEY}
+      - VALUESERP_API_KEY=${VALUESERP_API_KEY}
+    networks:
+      - rfp-network
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8050 --reload
+
+  rfp-frontend:
+    build:
+      context: ./frontend
+    container_name: rfp-frontend
+    ports:
+      - "8045:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://rfp-backend:8050
+    networks:
+      - rfp-network
+    depends_on:
+      - rfp-backend
+    restart: unless-stopped
+
+networks:
+  rfp-network:
+    driver: bridge
