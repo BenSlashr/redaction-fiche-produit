@@ -25,7 +25,8 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://rfp-backend:8050',
-  }
+  },
+  trailingSlash: true, // ← AJOUT IMPORTANT
 };
 
 module.exports = nextConfig;
