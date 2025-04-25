@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+
+  maillage-backend:
+    build:
+      context: ./maillage-interne-deployment
+      dockerfile: Dockerfile
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8010
+    working_dir: /app
+    volumes:
+      - ./maillage-interne-deployment:/app
+    ports:
+      - "8010:8010"
+
+  maillage-frontend:
+    build:
+      context: ./maillage-interne-deployment/frontend
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./maillage-interne-deployment/frontend:/app
+    command: npm run start
+    ports:
+      - "3000:3000"
+    depends_on:
+      - maillage-backend
+
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: seo_tools
+      POSTGRES_USER: monuser
+      POSTGRES_PASSWORD: LuksKebab59152&
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  clustering-kw:
+    build: ./clustering-kw
+    restart: always
+    ports:
+      - "8002:8000"  # Redirige 8002 (hôte) vers 8000 (conteneur)
+    environment:
+      - DATABASE_URL=postgresql://monuser:LuksKebab59152&@postgres/seo_tools
+    depends_on:
+      - postgres
+      
+  # Nouveaux services pour redaction-fiche-produit
+  rfp-backend:
+    build:
+      context: ./redaction-fiche-produit/backend
+      dockerfile: Dockerfile
+    container_name: rfp-backend
+    ports:
+      - "8050:8050"
+    volumes:
+      - ./redaction-fiche-produit/backend:/app
+    env_file:
+      - ./redaction-fiche-produit/backend/.env
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8050 --reload
+
+  rfp-frontend:
+    build:
+      context: ./redaction-fiche-produit/frontend
+      dockerfile: Dockerfile
+    container_name: rfp-frontend
+    ports:
+      - "8045:3000"
+    volumes:
+      - ./redaction-fiche-produit/frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://rfp-backend:8050
+    depends_on:
+      - rfp-backend
+    restart: unless-stopped

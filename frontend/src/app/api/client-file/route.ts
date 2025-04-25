@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     backendFormData.append('source_type', sourceType || 'uploaded_file');
     
     // Envoyer la requête au backend
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8050';
     const response = await fetch(`${backendUrl}/upload-client-file`, {
       method: 'POST',
       body: backendFormData,

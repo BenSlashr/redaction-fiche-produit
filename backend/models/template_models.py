@@ -62,3 +62,41 @@ class SectionedProductRequest(BaseModel):
     use_seo_guide: bool = Field(False, description="Utiliser le guide SEO")
     seo_guide_insights: Optional[Dict[str, Any]] = Field(None, description="Insights du guide SEO")
     ai_provider: Optional[Dict[str, str]] = Field(None, description="Fournisseur d'IA à utiliser")
+
+
+class SectionTemplateUpdate(BaseModel):
+    """Modèle pour la mise à jour d'une section de template."""
+    id: str = Field(..., description="Identifiant unique de la section")
+    name: str = Field(..., description="Nom de la section")
+    description: str = Field(..., description="Description de la section")
+    required: bool = Field(..., description="Indique si la section est obligatoire")
+    default_enabled: bool = Field(..., description="Indique si la section est activée par défaut")
+    order: int = Field(..., description="Ordre d'affichage de la section")
+    rag_query_template: str = Field(..., description="Template de requête RAG spécifique à cette section")
+    prompt_template: str = Field(..., description="Template de prompt spécifique à cette section")
+
+
+class TemplateCreate(BaseModel):
+    """Modèle pour la création d'un nouveau template."""
+    name: str = Field(..., description="Nom du template")
+    description: str = Field(..., description="Description du template")
+    sections: List[SectionTemplateUpdate] = Field(..., description="Sections du template")
+    is_default: bool = Field(False, description="Indique si c'est le template par défaut")
+
+
+class TemplateUpdate(BaseModel):
+    """Modèle pour la mise à jour d'un template existant."""
+    name: str = Field(..., description="Nom du template")
+    description: str = Field(..., description="Description du template")
+    sections: List[SectionTemplateUpdate] = Field(..., description="Sections du template")
+    is_default: bool = Field(False, description="Indique si c'est le template par défaut")
+
+
+class TemplateResponse(BaseModel):
+    """Réponse contenant un template."""
+    id: str = Field(..., description="Identifiant unique du template")
+    name: str = Field(..., description="Nom du template")
+    description: str = Field(..., description="Description du template")
+    sections: List[SectionTemplateUpdate] = Field(..., description="Sections du template")
+    is_default: bool = Field(..., description="Indique si c'est le template par défaut")
+    is_custom: bool = Field(..., description="Indique si c'est un template personnalisé")

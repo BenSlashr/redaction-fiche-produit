@@ -25,6 +25,7 @@ from langchain.schema import Document
 
 from models.rag_models import ClientDocument, DocumentChunk, RAGQuery, RAGResult
 from services.document_processor import DocumentProcessor
+from services.embedding_enrichment_service import EmbeddingEnrichmentService
 
 # Configuration du logging
 logger = logging.getLogger(__name__)
@@ -64,6 +65,9 @@ class VectorStoreService:
         
         # Initialisation du processeur de documents
         self.document_processor = DocumentProcessor()
+        
+        # Initialisation du service d'enrichissement des embeddings
+        self.embedding_enrichment = EmbeddingEnrichmentService()
         
         # Initialisation des embeddings
         self._initialize_embeddings()
@@ -288,7 +292,8 @@ class VectorStoreService:
                               product_info: Dict[str, Any] = None,
                               client_id: str = None,
                               filters: Dict[str, Any] = None, 
-                              top_k: int = 5) -> RAGResult:
+                              top_k: int = 5,
+                              section_type: str = None) -> RAGResult:
         """
         Recherche le contexte pertinent pour une requête.
         
@@ -298,6 +303,7 @@ class VectorStoreService:
             client_id: ID du client pour filtrer les résultats
             filters: Filtres supplémentaires à appliquer
             top_k: Nombre de résultats à retourner
+            section_type: Type de section pour enrichir la requête (Caractéristiques techniques, Avantages, etc.)
             
         Returns:
             Résultat RAG avec les chunks pertinents
@@ -309,10 +315,12 @@ class VectorStoreService:
             if client_id:
                 logger.info(f"🔎 VECTOR_DEBUG: Filtrage par client_id: {client_id}")
             
-            # Construction de la requête enrichie
-            enriched_query = query
+            # Construction de la requête enrichie avec le service d'enrichissement
+            # Enrichir d'abord avec les informations de section
+            enriched_query = self.embedding_enrichment.enrich_query(query, section_type)
+            
+            # Puis ajouter les informations produit si disponibles
             if product_info:
-                # Enrichir la requête avec les informations produit
                 product_name = product_info.get("name", "")
                 product_category = product_info.get("category", "")
                 if product_name:
@@ -349,18 +357,58 @@ class VectorStoreService:
             
             logger.info(f"🔎 VECTOR_DEBUG: {len(filtered_chunks)} chunks trouvés après filtrage")
             
-            # Recherche simple basée sur des mots-clés
-            # Note: Dans une vraie implémentation, nous utiliserions des embeddings pour une recherche sémantique
+            # Recherche améliorée avec enrichissement des contenus
             query_terms = enriched_query.lower().split()
             scored_chunks = []
             
             for chunk_data in filtered_chunks:
-                content = chunk_data["content"].lower()
-                score = 0
+                # Enrichir le contenu du chunk pour la comparaison
+                content = chunk_data["content"]
+                metadata = chunk_data.get("metadata", {})
                 
+                # Catégoriser le contenu pour améliorer le scoring
+                categories = self.embedding_enrichment.categorize_technical_content(content)
+                
+                # Calcul du score avec une pondération améliorée
+                score = 0
+                content_lower = content.lower()
+                
+                # Score de base sur les termes de la requête
                 for term in query_terms:
-                    if term in content:
+                    if term in content_lower:
                         score += 1
+                
+                # Bonus selon le type de section
+                if section_type:
+                    # Bonus pour les chunks contenant des informations techniques
+                    if section_type.lower() in ["caractéristiques techniques", "spécifications", "fiche technique"]:
+                        # Bonus pour chaque catégorie technique trouvée
+                        score += len(categories) * 2
+                        
+                        # Bonus spécifique pour les dimensions, poids, etc.
+                        for key_category in ["dimensions", "poids", "capacité", "matériaux"]:
+                            if key_category in categories:
+                                score += 3
+                    
+                    # Bonus pour les avantages et bénéfices
+                    elif section_type.lower() in ["avantages", "bénéfices", "points forts"]:
+                        if any(term in content_lower for term in ["avantage", "bénéfice", "atout", "point fort", "meilleur"]):
+                            score += 5
+                    
+                    # Bonus pour la description
+                    elif section_type.lower() in ["description", "présentation", "introduction"]:
+                        if any(term in content_lower for term in ["description", "présentation", "introduction", "vue d'ensemble"]):
+                            score += 5
+                    
+                    # Bonus pour les fonctionnalités
+                    elif section_type.lower() in ["fonctionnalités", "fonctions", "usages"]:
+                        if any(term in content_lower for term in ["fonction", "fonctionnalité", "utilisation", "usage"]):
+                            score += 5
+                    
+                    # Bonus pour les cas d'usage
+                    elif section_type.lower() in ["cas d'usage", "applications", "utilisations"]:
+                        if any(term in content_lower for term in ["cas d'usage", "application", "utilisation", "exemple"]):
+                            score += 5
                 
                 if score > 0:
                     # Ajouter un identifiant unique (chunk_id) comme deuxième élément du tuple
@@ -372,8 +420,26 @@ class VectorStoreService:
             # Trier par score et prendre les top_k
             # Les tuples sont triés d'abord par le premier élément (score), puis par le deuxième (chunk_id)
             scored_chunks.sort(reverse=True)
-            top_chunks = scored_chunks[:top_k]
             
+            # Définir un seuil de score minimal selon le type de section
+            min_score_threshold = 1  # Seuil par défaut
+            
+            if section_type:
+                section_type_lower = section_type.lower()
+                # Sections techniques nécessitent un score plus élevé pour garantir la pertinence
+                if section_type_lower in ["caractéristiques techniques", "spécifications", "fiche technique"]:
+                    min_score_threshold = 2
+                # Sections d'installation et maintenance nécessitent aussi une bonne pertinence
+                elif section_type_lower in ["installation", "mise en service", "entretien", "maintenance"]:
+                    min_score_threshold = 2
+            
+            # Filtrer les chunks qui ont un score inférieur au seuil minimal
+            filtered_scored_chunks = [chunk for chunk in scored_chunks if chunk[0] >= min_score_threshold]
+            
+            # Prendre les top_k chunks qui dépassent le seuil minimal
+            top_chunks = filtered_scored_chunks[:top_k]
+            
+            logger.info(f"🔎 VECTOR_DEBUG: {len(scored_chunks)} chunks avec scores, {len(filtered_scored_chunks)} dépassent le seuil minimal")
             logger.info(f"🔎 VECTOR_DEBUG: {len(top_chunks)} chunks pertinents retenus après filtrage")
             
             # Conversion des résultats en chunks

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
 // Récupérer l'URL de l'API depuis les variables d'environnement
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://rfp-backend:8050';
+// Utiliser explicitement l'adresse IPv4 pour éviter les problèmes avec IPv6
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8050';
 
 export async function POST(request: NextRequest) {
   try {

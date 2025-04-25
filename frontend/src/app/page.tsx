@@ -149,6 +149,17 @@ export default function Home() {
                 </p>
               </div>
             </Link>
+            
+            <Link href="/templates" className="group">
+              <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-6 hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
+                <h2 className="text-2xl font-semibold mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                  Templates de fiches produit
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Personnalisez les templates et les requêtes RAG pour chaque section de vos fiches produit.
+                </p>
+              </div>
+            </Link>
           </div>
         </main>
       </div>

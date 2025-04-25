@@ -8,13 +8,13 @@ services:
     ports:
       - "8050:8050"
     volumes:
-      - ./backend:/app
+      - ./backend:/app  # Sur le VPS, cela correspond à /var/www/seo-tools/redaction-fiche-produit/backend
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - THOT_API_KEY=${THOT_API_KEY}
       - VALUESERP_API_KEY=${VALUESERP_API_KEY}
     networks:
-      - rfp-network
+      - seo-tools-network
     restart: unless-stopped
     command: uvicorn main:app --host 0.0.0.0 --port 8050 --reload
 
@@ -25,17 +25,18 @@ services:
     ports:
       - "8045:3000"
     volumes:
-      - ./frontend:/app
+      - ./frontend:/app  # Sur le VPS, cela correspond à /var/www/seo-tools/redaction-fiche-produit/frontend
       - /app/node_modules
       - /app/.next
     environment:
       - NEXT_PUBLIC_API_URL=http://rfp-backend:8050
     networks:
-      - rfp-network
+      - seo-tools-network
     depends_on:
       - rfp-backend
     restart: unless-stopped
 
 networks:
-  rfp-network:
-    driver: bridge
+  seo-tools-network:
+    name: seo-tools-network
+    external: true  # Ce réseau doit être créé manuellement avec: docker network create seo-tools-network

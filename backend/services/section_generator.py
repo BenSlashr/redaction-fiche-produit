@@ -9,7 +9,7 @@ import os
 from dotenv import load_dotenv
 
 from services.ai_provider_service import AIProviderFactory
-from services.vector_store_service import VectorStoreService
+from services.vector_store_factory import VectorStoreFactory
 from models.product_template import ProductSectionTemplate
 
 # Configuration du logging
@@ -74,16 +74,8 @@ class SectionGenerator:
         if self.vector_store_service is None:
             logger.debug("Initialisation du service Vector Store (RAG)")
             try:
-                # Déterminer la clé API à utiliser pour les embeddings
-                api_key = None
-                if self.provider_type.lower() == "openai":
-                    api_key = OPENAI_API_KEY
-                
-                # Création du service Vector Store
-                self.vector_store_service = VectorStoreService(
-                    embedding_service="openai" if api_key else "local",
-                    openai_api_key=api_key
-                )
+                # Utiliser la factory pour créer le service Vector Store approprié
+                self.vector_store_service = VectorStoreFactory.create_vector_store()
                 logger.debug("Service Vector Store (RAG) initialisé avec succès")
             except Exception as e:
                 logger.error(f"Erreur lors de l'initialisation du service Vector Store: {str(e)}")
@@ -125,12 +117,31 @@ class SectionGenerator:
             
             logger.info(f"RAG_DEBUG: Requête RAG pour section '{section.name}': '{query}'")
             
+            # Déterminer le nombre optimal de chunks selon le type de section
+            section_type_lower = section.name.lower()
+            
+            # Sections techniques et détaillées nécessitent plus de contexte
+            if section_type_lower in ["caractéristiques techniques", "spécifications", "fiche technique"]:
+                top_k = 5
+            # Sections d'installation et de maintenance nécessitent un contexte détaillé
+            elif section_type_lower in ["installation", "mise en service", "entretien", "maintenance"]:
+                top_k = 4
+            # Sections générales comme l'introduction nécessitent moins de contexte spécifique
+            elif section_type_lower in ["introduction", "présentation"]:
+                top_k = 2
+            # Valeur par défaut pour les autres sections
+            else:
+                top_k = 3
+                
+            logger.info(f"RAG_DEBUG: Utilisation de top_k={top_k} pour la section '{section.name}'")
+            
             # Rechercher le contexte pertinent
             rag_result = self.vector_store_service.query_relevant_context(
                 query=query,
                 product_info=product_info,
                 client_id=client_id,
-                top_k=3  # Limiter à 3 chunks pour chaque section
+                top_k=top_k,
+                section_type=section.name  # Passer le nom de la section comme section_type
             )
             
             # Formater le contexte

@@ -148,7 +148,7 @@ const ToneSelector = ({ onToneSelect }: ToneSelectorProps) => {
     
     fetchPredefinedTones();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onToneSelect]); // Dépendance uniquement à onToneSelect
+  }, []); // Exécuté uniquement au montage du composant
 
   const handleToneSelect = (tone: ToneOption) => {
     setSelectedTone(tone.id);
@@ -220,15 +220,24 @@ const ToneSelector = ({ onToneSelect }: ToneSelectorProps) => {
     setActiveTab(value);
     
     if (value === "predefined" && selectedTone) {
-      handleToneSelect(predefinedTones.find((tone) => tone.id === selectedTone)!);
-    } else if (value === "custom") {
-      onToneSelect({
-        tone_description: customToneDescription,
-        tone_example: customToneExample,
-        brand_name: customBrandName,
-        persona_target: customPersonaTarget
-      });
+      // Quand on revient à l'onglet prédéfini, on applique le ton sélectionné
+      const selectedPredefinedTone = predefinedTones.find((tone) => tone.id === selectedTone);
+      if (selectedPredefinedTone) {
+        handleToneSelect(selectedPredefinedTone);
+      }
     }
+    // On ne fait plus de onToneSelect automatique quand on passe à l'onglet personnalisé
+  };
+  
+  // Nouvelle fonction pour appliquer le ton personnalisé
+  const applyCustomTone = () => {
+    onToneSelect({
+      predefined_tone_id: "custom",
+      tone_description: customToneDescription,
+      tone_example: customToneExample,
+      brand_name: customBrandName,
+      persona_target: customPersonaTarget
+    });
   };
 
   return (
@@ -300,13 +309,6 @@ const ToneSelector = ({ onToneSelect }: ToneSelectorProps) => {
                 value={customBrandName}
                 onChange={(e) => {
                   setCustomBrandName(e.target.value);
-                  onToneSelect({
-                    predefined_tone_id: "custom",
-                    tone_description: customToneDescription,
-                    tone_example: customToneExample,
-                    brand_name: e.target.value,
-                    persona_target: customPersonaTarget
-                  });
                 }}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
                 placeholder="ex: Apple, Nike, votre marque..."
@@ -322,13 +324,6 @@ const ToneSelector = ({ onToneSelect }: ToneSelectorProps) => {
                 value={customToneDescription}
                 onChange={(e) => {
                   setCustomToneDescription(e.target.value);
-                  onToneSelect({
-                    predefined_tone_id: "custom",
-                    tone_description: e.target.value,
-                    tone_example: customToneExample,
-                    brand_name: customBrandName,
-                    persona_target: customPersonaTarget
-                  });
                 }}
                 rows={2}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
@@ -345,13 +340,6 @@ const ToneSelector = ({ onToneSelect }: ToneSelectorProps) => {
                 value={customToneExample}
                 onChange={(e) => {
                   setCustomToneExample(e.target.value);
-                  onToneSelect({
-                    predefined_tone_id: "custom",
-                    tone_description: customToneDescription,
-                    tone_example: e.target.value,
-                    brand_name: customBrandName,
-                    persona_target: customPersonaTarget
-                  });
                 }}
                 rows={3}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
@@ -368,13 +356,6 @@ const ToneSelector = ({ onToneSelect }: ToneSelectorProps) => {
                 value={customPersonaTarget}
                 onChange={(e) => {
                   setCustomPersonaTarget(e.target.value);
-                  onToneSelect({
-                    predefined_tone_id: "custom",
-                    tone_description: customToneDescription,
-                    tone_example: customToneExample,
-                    brand_name: customBrandName,
-                    persona_target: e.target.value
-                  });
                 }}
                 rows={2}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
@@ -388,14 +369,25 @@ const ToneSelector = ({ onToneSelect }: ToneSelectorProps) => {
               </div>
             )}
             
-            <button
-              type="button"
-              onClick={handleAnalyzeCustomText}
-              disabled={isAnalyzing || !(customToneDescription && customToneDescription.trim())}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg transition-colors"
-            >
-              {isAnalyzing ? "Analyse en cours..." : "Analyser le ton"}
-            </button>
+            <div className="flex space-x-2">
+              <button
+                type="button"
+                onClick={applyCustomTone}
+                disabled={!(customToneDescription && customToneDescription.trim())}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white rounded-lg transition-colors"
+              >
+                Appliquer ce ton
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleAnalyzeCustomText}
+                disabled={isAnalyzing || !(customToneDescription && customToneDescription.trim())}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-lg transition-colors"
+              >
+                {isAnalyzing ? "Analyse en cours..." : "Analyser le ton"}
+              </button>
+            </div>
             
             {toneAnalysis && (
               <div className="mt-6 border border-green-200 rounded-lg p-4 bg-green-50 dark:bg-green-900/20 dark:border-green-800">

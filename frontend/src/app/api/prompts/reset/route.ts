@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     // Récupérer le prompt_id de la requête s'il existe
     const { searchParams } = new URL(request.url);
     const promptId = searchParams.get('prompt_id');
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8050';
     
     let url = `${apiUrl}/prompts/reset`;
     

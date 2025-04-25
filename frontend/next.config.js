@@ -13,7 +13,8 @@ const nextConfig = {
   },
   async rewrites() {
     // Utiliser l'URL de l'API définie dans les variables d'environnement
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://rfp-backend:8050';
+    // Utiliser explicitement l'adresse IPv4 pour éviter les problèmes avec IPv6
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8050';
     
     return [
       {
@@ -29,7 +30,7 @@ const nextConfig = {
   },
   // Configuration de l'URL de l'API pour les requêtes fetch
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://rfp-backend:8050'
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8050'
   }
 };
 

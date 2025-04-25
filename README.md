@@ -32,9 +32,9 @@ echo "THOT_API_KEY=votre_clé_thot" >> .env
 echo "VALUESERP_API_KEY=votre_clé_valueserp" >> .env
 
 # Lancer le serveur backend
-/Users/benoit/rfp/backend/venv/bin/python -m uvicorn main:app --reload
+/Users/benoit/rfp/backend/venv/bin/python -m uvicorn main:app --reload --port 8050
 ```
-Le backend sera disponible sur http://localhost:8000
+Le backend sera disponible sur http://localhost:8050
 
 #### 3. Configurer le frontend (dans un nouveau terminal)
 ```bash
@@ -242,6 +242,50 @@ Pour activer les logs de débogage, ajoutez cette ligne à votre fichier `.env` 
 ```
 LOG_LEVEL=DEBUG
 ```
+
+## Configuration des ports et adresses IP
+
+### Ports utilisés
+
+- **Backend (FastAPI)** : Port 8050
+  - En local : `http://127.0.0.1:8050` ou `http://localhost:8050`
+  - En production : Configuré sur votre VPS avec le même port (8050)
+
+- **Frontend (Next.js)** : Port 3000 (par défaut)
+  - En local : `http://localhost:3000`
+  - En production : Selon votre configuration
+
+### Fichiers de configuration à vérifier lors de la mise en production
+
+1. **Backend** : Commande de démarrage avec le port 8050
+   ```bash
+   python -m uvicorn main:app --host 0.0.0.0 --port 8050
+   ```
+
+2. **Frontend** : Fichier `.env.local`
+   ```
+   NEXT_PUBLIC_API_URL=http://[ADRESSE_IP_OU_DOMAINE_DU_BACKEND]:8050
+   ```
+
+3. **Frontend** : Fichier `next.config.js`
+   - Vérifier que les URLs dans les sections `rewrites()` et `env` pointent vers le backend
+   - Utiliser l'adresse IP ou le nom de domaine du backend en production
+
+4. **Frontend** : Fichiers proxy dans `src/app/api/`
+   - `proxy-generate/route.ts`
+   - `proxy-rag/route.ts`
+   - `proxy-template/route.ts`
+   - Tous ces fichiers doivent utiliser la même URL de backend
+
+5. **Frontend** : Fichier `package.json`
+   - Le script `dev` contient l'option `NODE_OPTIONS='--dns-result-order=ipv4first'` pour privilégier IPv4
+   - En production, cette option peut être nécessaire si vous rencontrez des problèmes de connexion IPv6
+
+### Notes importantes pour la mise en production
+
+- Si vous utilisez Docker, assurez-vous que les ports sont correctement exposés dans les fichiers `docker-compose.yml`
+- Pour éviter les problèmes de connexion IPv6, utilisez toujours des adresses IPv4 explicites (`127.0.0.1` au lieu de `localhost`)
+- Si vous utilisez un proxy inverse (Nginx, etc.), configurez-le pour rediriger vers le port 8050 du backend
 
 ## Développement futur
 

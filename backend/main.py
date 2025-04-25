@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 import os
 import logging
 import traceback
+import uuid
 from dotenv import load_dotenv
 from services.langchain_service import ProductDescriptionGenerator
 from services.tone_analyzer import ToneAnalyzer, ToneLibrary
@@ -15,7 +16,7 @@ from services.prompt_manager import PromptManager
 from services.specs_extractor import SpecsExtractor
 from services.batch_processor import BatchProcessor
 from services.ai_provider_service import AIProviderFactory
-from services.vector_store_service import VectorStoreService
+from services.vector_store_factory import VectorStoreFactory
 from services.document_processor import DocumentProcessor
 from services.file_processor import FileProcessor
 from services.product_description_service import ProductDescriptionService
@@ -335,17 +336,12 @@ def get_batch_processor():
 
 def get_vector_store_service():
     """
-    Retourne une instance du service Vector Store (RAG).
+    Retourne une instance du service Vector Store (RAG) en utilisant la factory.
     """
     try:
-        # Déterminer la clé API à utiliser pour les embeddings
-        api_key = OPENAI_API_KEY
-        
-        # Création du service Vector Store
-        vector_store_service = VectorStoreService(
-            embedding_service="openai" if api_key else "local",
-            openai_api_key=api_key
-        )
+        # Utiliser la factory pour créer le service Vector Store approprié
+        # selon la configuration dans le fichier .env
+        vector_store_service = VectorStoreFactory.create_vector_store()
         
         return vector_store_service
     except Exception as e:
@@ -1002,7 +998,7 @@ def get_ai_providers():
 @app.post("/upload-client-document", response_model=ClientDocumentResponse, tags=["RAG"])
 async def upload_client_document(
     document: ClientDocumentUpload,
-    vector_store_service: VectorStoreService = Depends(get_vector_store_service),
+    vector_store_service = Depends(get_vector_store_service),
     document_processor: DocumentProcessor = Depends(get_document_processor)
 ):
     """
@@ -1020,8 +1016,18 @@ async def upload_client_document(
         # Traiter le document avec le processeur de documents
         document_chunks = document_processor.process_document(document)
         
-        # Ajouter les chunks au vector store
-        document_id = vector_store_service.add_document(document_chunks)
+        # Ajouter les chunks individuellement au vector store
+        document_id = document_chunks[0].document_id if document_chunks else str(uuid.uuid4())
+        
+        # Ajouter chaque chunk individuellement
+        for chunk in document_chunks:
+            vector_store_service.add_chunk(
+                chunk_id=chunk.chunk_id,
+                document_id=chunk.document_id,
+                content=chunk.content,
+                metadata=chunk.metadata,
+                client_id=document.client_id
+            )
         
         return ClientDocumentResponse(
             document_id=document_id,
@@ -1042,7 +1048,7 @@ async def upload_client_file(
     client_id: str = Form(...),
     title: Optional[str] = Form(None),
     source_type: str = Form("uploaded_file"),
-    vector_store_service: VectorStoreService = Depends(get_vector_store_service),
+    vector_store_service = Depends(get_vector_store_service),
     document_processor: DocumentProcessor = Depends(get_document_processor)
 ):
     """
@@ -1070,8 +1076,18 @@ async def upload_client_file(
         # Traiter le document avec le processeur de documents
         document_chunks = document_processor.process_document(document)
         
-        # Ajouter les chunks au vector store
-        document_id = vector_store_service.add_document(document_chunks)
+        # Ajouter les chunks individuellement au vector store
+        document_id = document_chunks[0].document_id if document_chunks else str(uuid.uuid4())
+        
+        # Ajouter chaque chunk individuellement
+        for chunk in document_chunks:
+            vector_store_service.add_chunk(
+                chunk_id=chunk.chunk_id,
+                document_id=chunk.document_id,
+                content=chunk.content,
+                metadata=chunk.metadata,
+                client_id=document.client_id
+            )
         
         return ClientDocumentResponse(
             document_id=document_id,
@@ -1092,7 +1108,7 @@ async def upload_client_file(
 @app.get("/client-data/{client_id}", response_model=ClientDataSummaryResponse)
 async def get_client_data(
     client_id: str,
-    vector_store_service: VectorStoreService = Depends(get_vector_store_service)
+    vector_store_service = Depends(get_vector_store_service)
 ):
     """
     Récupère un résumé des données client disponibles.
@@ -1128,7 +1144,7 @@ async def get_client_data(
 @app.delete("/client-document/{document_id}")
 async def delete_client_document(
     document_id: str,
-    vector_store_service: VectorStoreService = Depends(get_vector_store_service)
+    vector_store_service = Depends(get_vector_store_service)
 ):
     """
     Supprime un document client du vector store.

@@ -40,7 +40,7 @@ const PromptManager = () => {
       try {
         setIsLoading(true);
         // Appel direct à l'API backend
-        const response = await fetch('http://localhost:8000/prompts', {
+        const response = await fetch('http://localhost:8050/prompts', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ const PromptManager = () => {
       setSuccess(null);
 
       // Appel direct à l'API backend
-      const response = await fetch(`http://localhost:8000/prompts/${activePrompt}`, {
+      const response = await fetch(`http://localhost:8050/prompts/${activePrompt}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -151,7 +151,7 @@ const PromptManager = () => {
       setSuccess(null);
 
       // Appel direct à l'API backend
-      const response = await fetch(`http://localhost:8000/prompts/reset?prompt_id=${activePrompt}`, {
+      const response = await fetch(`http://localhost:8050/prompts/reset?prompt_id=${activePrompt}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ const PromptManager = () => {
       }
 
       // Recharger tous les prompts pour obtenir la version réinitialisée
-      const promptsResponse = await fetch('http://localhost:8000/prompts', {
+      const promptsResponse = await fetch('http://localhost:8050/prompts', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -212,7 +212,7 @@ const PromptManager = () => {
       setSuccess(null);
 
       // Appel direct à l'API backend
-      const response = await fetch(`http://localhost:8000/prompts/reset`, {
+      const response = await fetch(`http://localhost:8050/prompts/reset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +225,7 @@ const PromptManager = () => {
       }
 
       // Recharger tous les prompts
-      const promptsResponse = await fetch('http://localhost:8000/prompts', {
+      const promptsResponse = await fetch('http://localhost:8050/prompts', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -437,6 +437,7 @@ const PromptManager = () => {
               <li><code className="bg-muted px-1 rounded">{"{seo_optimization}"}</code> - Niveau d'optimisation SEO</li>
               <li><code className="bg-muted px-1 rounded">{"{competitor_insights}"}</code> - Insights concurrentiels</li>
               <li><code className="bg-muted px-1 rounded">{"{seo_guide_info}"}</code> - Informations du guide SEO</li>
+              <li><code className="bg-muted px-1 rounded bg-yellow-100 font-bold border border-yellow-300">{"{client_data_context}"}</code> - <span className="font-semibold text-blue-600">Contexte RAG</span> : Informations pertinentes extraites des documents clients</li>
             </ul>
 
             <h3 className="text-xl font-semibold mt-4 mb-2">Variables spécifiques à l'auto-amélioration</h3>
@@ -448,6 +449,32 @@ const PromptManager = () => {
               <li><code className="bg-muted px-1 rounded">{"{format_instructions}"}</code> - Instructions de formatage (pour l'évaluation)</li>
             </ul>
 
+            <h3 className="text-xl font-semibold mt-6 mb-2 text-blue-600">Utilisation du RAG (Retrieval Augmented Generation)</h3>
+            <div className="bg-blue-50 p-4 rounded-md border border-blue-200 mb-6">
+              <h4 className="font-bold mb-2">Comment utiliser la variable <code className="bg-muted px-1 rounded">{"client_data_context"}</code></h4>
+              <p className="mb-3">
+                Cette variable est <span className="font-semibold">essentielle</span> pour le fonctionnement du RAG. Elle contient toutes les informations pertinentes extraites automatiquement des documents clients en fonction du produit à décrire.
+              </p>
+              <p className="mb-3">
+                <span className="font-semibold">Placement recommandé</span> : Placez cette variable après les informations produit et avant les instructions de génération pour que l'IA puisse s'en servir efficacement.
+              </p>
+              <div className="bg-white p-3 rounded-md border border-gray-200 font-mono text-sm whitespace-pre-wrap mb-3">
+                INFORMATIONS PRODUIT:
+- Nom: {"product_name"}
+- Description: {"product_description"}
+...
+
+<span className="bg-yellow-100 px-1">{"client_data_context"}</span>
+
+INSTRUCTIONS:
+- Crée une description complète et persuasive
+- Utilise les informations techniques précises du contexte client
+...</div>
+              <p className="font-semibold text-blue-700">
+                ⚠️ Important : Si vous supprimez cette variable de votre prompt, le système l'ajoutera automatiquement, mais pour un meilleur contrôle, gardez-la et positionnez-la stratégiquement.
+              </p>
+            </div>
+            
             <div className="bg-yellow-50 p-4 rounded-md mt-6 border border-yellow-200">
               <h4 className="text-lg font-semibold text-yellow-800 mb-2">Important</h4>
               <p className="text-yellow-700">

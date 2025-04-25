@@ -51,7 +51,5 @@ out/
 Thumbs.db
 
 # Project specific
-backend/uploads/
-backend/data/
 frontend/.next/
 frontend/out/

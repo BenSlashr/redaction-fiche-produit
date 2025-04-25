@@ -12,7 +12,7 @@ export async function GET(
 ) {
   try {
     const promptId = params.prompt_id;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8050';
     
     const response = await fetch(`${apiUrl}/prompts/${promptId}`, {
       method: 'GET',
@@ -43,7 +43,7 @@ export async function PUT(
 ) {
   try {
     const promptId = params.prompt_id;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8050';
     const body = await request.json();
     
     const response = await fetch(`${apiUrl}/prompts/${promptId}`, {

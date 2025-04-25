@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configuration de l'URL de l'API
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8050';
 
 // Types pour les requêtes et réponses
 interface ProductInfo {
@@ -228,9 +228,10 @@ export const api = {
   // Récupération des templates disponibles
   async getTemplates(): Promise<TemplateResponse> {
     try {
-      console.log('Appel à getTemplates via proxy');
-      const response = await axios.get('/api/proxy-template');
-      console.log('Réponse brute de l\'API templates via proxy:', response);
+      console.log('Appel direct à getTemplates');
+      // Appel direct à l'API backend sans passer par le proxy
+      const response = await axios.get(`${API_URL}/templates`);
+      console.log('Réponse brute de l\'API templates:', response);
       return response.data;
     } catch (error) {
       console.error('Erreur lors de la récupération des templates:', error);
