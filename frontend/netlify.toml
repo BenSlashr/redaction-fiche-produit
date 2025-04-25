@@ -10,10 +10,9 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "http://127.0.0.1:8050/:splat"
+  to = "https://rfp-backend.onrender.com/:splat"
   status = 200
   force = true
-  conditions = {Role = ["admin"]}
 
 [[redirects]]
   from = "/*"

@@ -1,7 +1,11 @@
 import axios from 'axios';
 
 // Configuration de l'URL de l'API
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8050';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://rfp-backend.onrender.com';
+
+// Utiliser l'URL relative en production pour bénéficier des redirections Netlify
+const isProduction = process.env.NODE_ENV === 'production';
+const BASE_URL = isProduction ? '/api' : API_URL;
 
 // Types pour les requêtes et réponses
 interface ProductInfo {
@@ -175,43 +179,43 @@ export const api = {
 
   // Récupération du guide SEO
   async getSeoGuide(keywords: string): Promise<SeoGuideResponse> {
-    const response = await axios.post(`${API_URL}/get-seo-guide`, { keywords });
+    const response = await axios.post(`${BASE_URL}/get-seo-guide`, { keywords });
     return response.data;
   },
 
   // Analyse des concurrents
   async analyzeCompetitors(data: CompetitorAnalysisRequest): Promise<CompetitorAnalysisResponse> {
-    const response = await axios.post(`${API_URL}/analyze-competitors`, data);
+    const response = await axios.post(`${BASE_URL}/analyze-competitors`, data);
     return response.data;
   },
 
   // Extraction des spécifications techniques
   async extractSpecs(rawText: string): Promise<Record<string, string>> {
-    const response = await axios.post(`${API_URL}/extract-specs`, { raw_text: rawText });
+    const response = await axios.post(`${BASE_URL}/extract-specs`, { raw_text: rawText });
     return response.data.specs;
   },
 
   // Téléchargement et indexation d'un document client
   async uploadClientDocument(document: ClientDocument): Promise<ClientDocumentResponse> {
-    const response = await axios.post(`${API_URL}/upload-client-document`, document);
+    const response = await axios.post(`${BASE_URL}/upload-client-document`, document);
     return response.data;
   },
 
   // Récupération des données d'un client
   async getClientData(clientId: string): Promise<ClientDataResponse> {
-    const response = await axios.get(`${API_URL}/client-data/${clientId}`);
+    const response = await axios.get(`${BASE_URL}/client-data/${clientId}`);
     return response.data;
   },
 
   // Suppression d'un document client
   async deleteClientDocument(documentId: string): Promise<{ success: boolean }> {
-    const response = await axios.delete(`${API_URL}/client-document/${documentId}`);
+    const response = await axios.delete(`${BASE_URL}/client-document/${documentId}`);
     return response.data;
   },
 
   // Génération par lot
   async batchGenerate(formData: FormData): Promise<any> {
-    const response = await axios.post(`${API_URL}/batch-generate`, formData, {
+    const response = await axios.post(`${BASE_URL}/batch-generate`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -221,16 +225,15 @@ export const api = {
 
   // Récupération des fournisseurs d'IA disponibles
   async getAIProviders(): Promise<AIProvidersResponse> {
-    const response = await axios.get(`${API_URL}/ai-providers`);
+    const response = await axios.get(`${BASE_URL}/ai-providers`);
     return response.data;
   },
 
   // Récupération des templates disponibles
   async getTemplates(): Promise<TemplateResponse> {
     try {
-      console.log('Appel direct à getTemplates');
-      // Appel direct à l'API backend sans passer par le proxy
-      const response = await axios.get(`${API_URL}/templates`);
+      console.log('Appel à getTemplates via BASE_URL');
+      const response = await axios.get(`${BASE_URL}/templates`);
       console.log('Réponse brute de l\'API templates:', response);
       return response.data;
     } catch (error) {
