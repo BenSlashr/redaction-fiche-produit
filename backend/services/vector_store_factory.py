@@ -28,16 +28,26 @@ class VectorStoreFactory:
         config = get_vector_store_config()
         store_type = config["type"]
         data_dir = config["data_dir"]
+        embedding_type = config["embedding_type"]
+        embedding_model = config["embedding_model"]
+        
+        logger.info(f"Création d'un VectorStore de type {store_type} avec embeddings {embedding_type} (modèle: {embedding_model})")
         
         if store_type == "faiss":
-            model_name = config["model"]
-            logger.info(f"Création d'un VectorStoreFaissService avec le modèle {model_name}")
-            return VectorStoreFaissService(
-                model_name=model_name,
-                data_dir=data_dir,
-                client_id=client_id
-            )
-        else:
+            if embedding_type == "openai":
+                from services.vector_store_openai_service import VectorStoreOpenAIService
+                return VectorStoreOpenAIService(
+                    model_name=embedding_model,
+                    data_dir=data_dir,
+                    client_id=client_id
+                )
+            else:  # sentence_transformers par défaut
+                return VectorStoreFaissService(
+                    model_name=embedding_model,
+                    data_dir=data_dir,
+                    client_id=client_id
+                )
+        else:  # legacy
             logger.info("Création d'un VectorStoreService (legacy)")
             return VectorStoreService(
                 data_dir=data_dir,

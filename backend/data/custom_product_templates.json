@@ -77,6 +77,84 @@
         }
       ],
       "is_default": false
+    },
+    {
+      "id": "custom_1bc95719",
+      "name": "tempalte 2",
+      "description": "Template personnalisé basé sur Fiche produit standard",
+      "sections": [
+        {
+          "id": "introduction",
+          "name": "Introduction",
+          "description": "Présentation générale du produit",
+          "required": true,
+          "default_enabled": true,
+          "order": 1,
+          "rag_query_template": "informations sur {product_name} dans la catégorie {product_category}",
+          "prompt_template": "Générer une section sur {product_name} en utilisant les informations suivantes: {client_data_context}"
+        },
+        {
+          "id": "benefits",
+          "name": "Avantages et bénéfices",
+          "description": "Principaux avantages et bénéfices du produit",
+          "required": true,
+          "default_enabled": true,
+          "order": 2,
+          "rag_query_template": "informations sur {product_name} dans la catégorie {product_category}",
+          "prompt_template": "Générer une section sur {product_name} en utilisant les informations suivantes: {client_data_context}"
+        },
+        {
+          "id": "technical_specs",
+          "name": "Caractéristiques techniques",
+          "description": "Spécifications techniques détaillées",
+          "required": true,
+          "default_enabled": true,
+          "order": 3,
+          "rag_query_template": "informations sur {product_name} dans la catégorie {product_category}",
+          "prompt_template": "Générer une section sur {product_name} en utilisant les informations suivantes: {client_data_context}"
+        },
+        {
+          "id": "use_cases",
+          "name": "Cas d'utilisation",
+          "description": "Exemples concrets d'utilisation",
+          "required": false,
+          "default_enabled": true,
+          "order": 4,
+          "rag_query_template": "informations sur {product_name} dans la catégorie {product_category}",
+          "prompt_template": "Générer une section sur {product_name} en utilisant les informations suivantes: {client_data_context}"
+        },
+        {
+          "id": "warranty",
+          "name": "Garantie et SAV",
+          "description": "Informations sur la garantie et le service après-vente",
+          "required": false,
+          "default_enabled": true,
+          "order": 7,
+          "rag_query_template": "informations sur {product_name} dans la catégorie {product_category}",
+          "prompt_template": "Générer une section sur {product_name} en utilisant les informations suivantes: {client_data_context}"
+        },
+        {
+          "id": "customer_reviews",
+          "name": "Avis clients",
+          "description": "Synthèse des avis clients",
+          "required": false,
+          "default_enabled": true,
+          "order": 8,
+          "rag_query_template": "informations sur {product_name} dans la catégorie {product_category}",
+          "prompt_template": "Générer une section sur {product_name} en utilisant les informations suivantes: {client_data_context}"
+        },
+        {
+          "id": "conclusion",
+          "name": "Conclusion",
+          "description": "Conclusion et appel à l'action",
+          "required": true,
+          "default_enabled": true,
+          "order": 10,
+          "rag_query_template": "informations sur {product_name} dans la catégorie {product_category}",
+          "prompt_template": "Générer une section sur {product_name} en utilisant les informations suivantes: {client_data_context}"
+        }
+      ],
+      "is_default": false
     }
   ]
 }
