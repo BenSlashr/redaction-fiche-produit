@@ -123,7 +123,27 @@ async def generate_sectioned_product(
         result = service.generate_product_description(request.dict())
         
         logger.info("Génération de fiche produit par sections terminée avec succès")
-        return SectionedProductResponse(product_description=result, metadata={})
+        
+        # Extraction des données correctes pour le modèle SectionedProductResponse
+        product_description = result.get("product_description", {})
+        metadata = result.get("metadata", {})
+        
+        # S'assurer que product_description contient les champs template et sections requis
+        if not product_description.get("template"):
+            product_description["template"] = {"id": request.template_id, "name": "Template utilisé"}
+            
+        if not product_description.get("sections") and "content" in product_description:
+            # Si nous avons juste un contenu global, le transformer en sections
+            product_description["sections"] = [
+                {
+                    "id": "content",
+                    "name": "Contenu",
+                    "content": product_description.get("content", "")
+                }
+            ]
+        
+        # Créer la réponse avec les champs requis
+        return SectionedProductResponse(product_description=product_description, metadata=metadata)
     except Exception as e:
         logger.error(f"Erreur lors de la génération de fiche produit par sections: {str(e)}")
         logger.error(traceback.format_exc())
