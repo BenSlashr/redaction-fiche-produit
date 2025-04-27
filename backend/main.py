@@ -79,6 +79,11 @@ app.add_middleware(
 # Inclusion des routes de templates
 app.include_router(template_router)
 
+@app.get("/")
+async def health_check():
+    """Endpoint de santé pour vérifier que l'application est en cours d'exécution."""
+    return {"status": "ok", "message": "API de génération de fiches produit opérationnelle"}
+
 # Modèles de données
 class ProductInfo(BaseModel):
     name: str
